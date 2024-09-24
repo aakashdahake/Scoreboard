@@ -390,6 +390,12 @@ public class ScoreBoardTests {
         assertFalse(orderedMatches.isEmpty());
         assertEquals(3, orderedMatches.size());
         assertTrue(orderedMatches.stream().noneMatch(FootballMatch::isMatchActive));
+
+        orderedMatches.forEach(match ->
+                System.out.println(match.getHomeTeam().getName() + " "
+                        + match.getHomeTeam().getScore() + " - "
+                        + match.getAwayTeam().getName() + " "
+                        + match.getAwayTeam().getScore()));
     }
 
 }

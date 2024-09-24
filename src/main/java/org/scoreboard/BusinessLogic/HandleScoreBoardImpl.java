@@ -7,8 +7,10 @@ import org.scoreboard.Model.DTO.Team;
 import org.scoreboard.Model.Error.ScoreboardException;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class HandleScoreBoardImpl implements HandleScoreBoard {
 
@@ -97,7 +99,22 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
 
     @Override
     public List<FootballMatch> getOrderedSummary() {
-        return Collections.EMPTY_LIST;
+
+        List<FootballMatch> footballMatches = Collections.list(Collections.enumeration(matches.values()));
+
+        // Collect matches which are not active
+footballMatches = footballMatches.stream().filter(match -> !match.isMatchActive()).collect(Collectors.toList());
+        if(footballMatches.isEmpty()) {
+            LOGGER.error("No finished matches found");
+            throw new ScoreboardException("No finished matches found");
+        }
+
+        footballMatches.sort(
+                Comparator.comparing(FootballMatch::getTotalScore)
+                        .thenComparing(FootballMatch::getStartTime)
+                        .reversed()
+        );
+        return footballMatches;
     }
 
 }
