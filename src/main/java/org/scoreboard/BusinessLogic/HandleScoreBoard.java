@@ -10,4 +10,5 @@ public interface HandleScoreBoard {
 
     ConcurrentHashMap<String, FootballMatch> getMatches();
 
+    void updateScore(FootballMatch currentMatch, int homeTeamScore, int awayTeamScore);
 }

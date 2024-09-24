@@ -39,5 +39,10 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         return matches;
     }
 
+    @Override
+    public void updateScore(FootballMatch currentMatch, int homeTeamScore, int awayTeamScore) {
+
+    }
+
 
 }
