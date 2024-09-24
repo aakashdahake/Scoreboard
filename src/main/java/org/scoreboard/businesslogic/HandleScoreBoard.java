@@ -1,6 +1,6 @@
-package org.scoreboard.BusinessLogic;
+package org.scoreboard.businesslogic;
 
-import org.scoreboard.Model.DTO.FootballMatch;
+import org.scoreboard.models.dto.FootballMatch;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,4 +1,4 @@
-package org.scoreboard.Enums;
+package org.scoreboard.enums;
 
 public enum FootballTeams {
 

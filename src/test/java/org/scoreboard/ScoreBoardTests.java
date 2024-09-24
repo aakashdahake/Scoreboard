@@ -3,12 +3,12 @@ package org.scoreboard;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.scoreboard.BusinessLogic.HandleScoreBoard;
-import org.scoreboard.BusinessLogic.HandleScoreBoardImpl;
-import org.scoreboard.Enums.FootballTeams;
-import org.scoreboard.Model.DTO.FootballMatch;
-import org.scoreboard.Model.DTO.Team;
-import org.scoreboard.Model.Error.ScoreboardException;
+import org.scoreboard.businesslogic.HandleScoreBoard;
+import org.scoreboard.businesslogic.HandleScoreBoardImpl;
+import org.scoreboard.enums.FootballTeams;
+import org.scoreboard.models.dto.FootballMatch;
+import org.scoreboard.models.dto.Team;
+import org.scoreboard.models.error.ScoreboardException;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;

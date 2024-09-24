@@ -1,4 +1,4 @@
-package org.scoreboard.Model.DTO;
+package org.scoreboard.models.dto;
 
 import lombok.Getter;
 import lombok.Setter;

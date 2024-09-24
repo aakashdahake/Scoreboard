@@ -32,11 +32,11 @@ The scoreboard supports the following operations:
 
 For example, if following matches are started in the specified order and their scores
 respectively updated:
-a. Mexico 0 - Canada 5
-b. Spain 10 - Brazil 2
-c. Germany 2 - France 2
-d. Uruguay 6 - Italy 6
-e. Argentina 3 - Australia 1
+1. Mexico 0 - Canada 5 
+2. Spain 10 - Brazil 2 
+3. Germany 2 - France 2
+4. Uruguay 6 - Italy 6
+5. Argentina 3 - Australia 1
 
 The summary should be as follows:
 1. Uruguay 6 - Italy 6
@@ -53,14 +53,69 @@ The summary should be as follows:
 - Retrieve a summary of active matches ordered by total score
 
 ## Installation
+- Clone the repository:
+    ```bash
+    git clone -b assignment https://github.com/aakashdahake/scoreboard.git
+    ```
+
+- Branch = **assignment**
+ 
+- Open IDE (IntelliJ or Eclipse) & navigate to the project directory:
+
+- Reload Maven project to install declared dependencies
+ 
+- Alternatively for above step, installing dependencies using CLI:
+  ```bash
+  mvn install clean
+  ```
 
 ## Running the tests
+- Run the test cases using the following command in IDE terminal or CLI in the project directory:
+  ```bash
+  mvn test
+  ```
+- Run the test cases in the IDE by right-clicking on the test folder and selecting 'Run ScoreBoardTests'
+    ```bash
+  ScoreBoardTests.class
+  ```
+
+## Development Approach
+- The project is developed using TDD approach.
+- Red -> Green -> Refactor cycle is followed.
 
 ## Tools Used
+- Java 17
+- JUnit 5
+- Maven
+- IntelliJ IDEA
+- Git
+- Github
 
 ## Example
 
+```java
+//Create scoreboard
+HandleScoreBoard scoreboard = new HandleScoreBoardImpl();
+
+//Create a new match
+FootballMatch homeTeam = new Team("Mexico");
+FootballMatch awayTeam = new Team("Canada");
+FootballMatch match = new FootballMatch(homeTeam, awayTeam);
+
+//Start the match
+scoreboard.startMatch(match);
+
+//Update the score - updateScore(FootballMatch match, int homeTeamScore, int awayTeamScore)
+scoreboard.updateScore(match, 0, 5);
+
+//Get the summary of matches
+List<FootballMatch> matches = scoreboard.getOrderedSummary();
+
+//End the match
+scoreboard.endMatch(match);
+```
+
 ## Authors
-- Aakash Dahae
+- Aakash Dahake
 
 

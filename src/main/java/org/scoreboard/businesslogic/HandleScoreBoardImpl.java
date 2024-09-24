@@ -1,16 +1,15 @@
-package org.scoreboard.BusinessLogic;
+package org.scoreboard.businesslogic;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.scoreboard.Model.DTO.FootballMatch;
-import org.scoreboard.Model.DTO.Team;
-import org.scoreboard.Model.Error.ScoreboardException;
+import org.scoreboard.models.dto.FootballMatch;
+import org.scoreboard.models.dto.Team;
+import org.scoreboard.models.error.ScoreboardException;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class HandleScoreBoardImpl implements HandleScoreBoard {
 
