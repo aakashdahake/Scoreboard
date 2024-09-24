@@ -258,12 +258,6 @@ public class ScoreBoardTests {
         scoreboard.updateScore(match4, 6, 6);
         scoreboard.updateScore(match5, 3, 1);
 
-        scoreboard.endMatch(match1);
-        scoreboard.endMatch(match2);
-        scoreboard.endMatch(match3);
-        scoreboard.endMatch(match4);
-        scoreboard.endMatch(match5);
-
         List<FootballMatch> orderedMatches = scoreboard.getOrderedSummary();
 
         assertNotNull(orderedMatches);
