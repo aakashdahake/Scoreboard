@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <!-- Appenders define where the logs are written (Console, File, etc.) -->
+    <Appenders>
+
+        <!-- Console appender for writing logs to the console -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p [%t] %c{1} - %m%n" />
+        </Console>
+
+        <!-- File appender for writing logs to a file -->
+        <File name="FileAppender" fileName="logs/application.log" append="true">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p [%t] %c{1} - %m%n" />
+        </File>
+
+        <!-- Rolling file appender for handling log rotation (older logs will be archived) -->
+        <RollingFile name="RollingFileAppender" fileName="logs/app-rolling.log"
+                     filePattern="logs/app-rolling-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p [%t] %c{1} - %m%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="10MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+    </Appenders>
+
+    <!-- Loggers define how logging is handled for different parts of the application -->
+    <Loggers>
+
+        <!-- Root logger which applies to all loggers unless specifically overridden -->
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="FileAppender" />
+        </Root>
+
+        <!-- Example logger for a specific package or class -->
+        <Logger name="com.yourpackage" level="debug" additivity="false">
+            <AppenderRef ref="RollingFileAppender" />
+        </Logger>
+
+    </Loggers>
+
+</Configuration>
