@@ -39,10 +39,30 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         return matches;
     }
 
+    public static void validateScores(int homeTeamScore, int awayTeamScore, FootballMatch currentMatch) throws ScoreboardException {
+        if (currentMatch.isMatchActive() && currentMatch.getHomeTeam() != null && homeTeamScore < 0) {
+            throw new ScoreboardException("Score can not be negative for team :: " + currentMatch.getHomeTeam().getName());
+        }
+
+        if (currentMatch.isMatchActive() && currentMatch.getAwayTeam() != null && awayTeamScore < 0) {
+            throw new ScoreboardException("Score can not be negative for team :: " + currentMatch.getAwayTeam().getName());
+        }
+    }
+
     @Override
     public void updateScore(FootballMatch currentMatch, int homeTeamScore, int awayTeamScore) {
 
-    }
+        if (currentMatch == null || !matches.containsKey(currentMatch.getMatchKey())) {
+            throw new ScoreboardException("Match not found");
+        }
 
+        validateScores(homeTeamScore, awayTeamScore, currentMatch);
+
+        FootballMatch match = matches.get(currentMatch.getMatchKey());
+        synchronized (match) {
+            match.getHomeTeam().setScore(homeTeamScore);
+            match.getAwayTeam().setScore(awayTeamScore);
+        }
+    }
 
 }
