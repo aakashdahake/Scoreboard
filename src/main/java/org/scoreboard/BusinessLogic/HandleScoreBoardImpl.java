@@ -6,6 +6,8 @@ import org.scoreboard.Model.DTO.FootballMatch;
 import org.scoreboard.Model.DTO.Team;
 import org.scoreboard.Model.Error.ScoreboardException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HandleScoreBoardImpl implements HandleScoreBoard {
@@ -84,6 +86,11 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         }
         LOGGER.info("Ending match :: " + match.getMatchKey());
         match.setMatchActive(false);
+    }
+
+    @Override
+    public List<FootballMatch> getOrderedSummary() {
+        return Collections.EMPTY_LIST;
     }
 
 }

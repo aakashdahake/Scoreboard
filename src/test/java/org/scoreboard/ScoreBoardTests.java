@@ -10,6 +10,7 @@ import org.scoreboard.Model.DTO.FootballMatch;
 import org.scoreboard.Model.DTO.Team;
 import org.scoreboard.Model.Error.ScoreboardException;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.*;
@@ -163,7 +164,7 @@ public class ScoreBoardTests {
 
         FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
         scoreboard.startMatch(newMatch);
-        ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.endMatch(new FootballMatch(new Team("Spain"), new Team("Italy"))));
+        ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.endMatch(new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.ITALY.getTeamName()))));
         assertEquals("Match not found", exception.getMessage());
     }
 
@@ -196,8 +197,8 @@ public class ScoreBoardTests {
     @Test
     public void testEndMatchWithMultipleThreadsTryingToEndDifferentMatchesAtSameTime() throws InterruptedException {
 
-        FootballMatch match1 = new FootballMatch(new Team("Mexico"), new Team("Canada"));
-        FootballMatch match2 = new FootballMatch(new Team("Spain"), new Team("Italy"));
+        FootballMatch match1 = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        FootballMatch match2 = new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.ITALY.getTeamName()));
 
         scoreboard.startMatch(match1);
         scoreboard.startMatch(match2);
@@ -224,6 +225,160 @@ public class ScoreBoardTests {
 
         assertFalse(matches.get(currentMatch1.getMatchKey()).isMatchActive());
         assertFalse(matches.get(currentMatch2.getMatchKey()).isMatchActive());
+    }
+
+    @Test
+    public void testGetOrderedSummary() {
+
+        FootballMatch match1 = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        FootballMatch match2 = new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.BRAZIL.getTeamName()));
+        FootballMatch match3 = new FootballMatch(new Team(FootballTeams.GERMANY.getTeamName()), new Team(FootballTeams.FRANCE.getTeamName()));
+        FootballMatch match4 = new FootballMatch(new Team(FootballTeams.URUGUAY.getTeamName()), new Team(FootballTeams.ITALY.getTeamName()));
+        FootballMatch match5 = new FootballMatch(new Team(FootballTeams.ARGENTINA.getTeamName()), new Team(FootballTeams.AUSTRALIA.getTeamName()));
+
+        scoreboard.startMatch(match1);
+        scoreboard.startMatch(match2);
+        scoreboard.startMatch(match3);
+        scoreboard.startMatch(match4);
+        scoreboard.startMatch(match5);
+
+        scoreboard.updateScore(match1, 0, 5);
+        scoreboard.updateScore(match2, 10, 2);
+        scoreboard.updateScore(match3, 2, 2);
+        scoreboard.updateScore(match4, 6, 6);
+        scoreboard.updateScore(match5, 3, 1);
+
+        scoreboard.endMatch(match1);
+        scoreboard.endMatch(match2);
+        scoreboard.endMatch(match3);
+        scoreboard.endMatch(match4);
+        scoreboard.endMatch(match5);
+
+        List<FootballMatch> orderedMatches = scoreboard.getOrderedSummary();
+
+        assertNotNull(orderedMatches);
+        assertFalse(orderedMatches.isEmpty());
+
+        //1. Uruguay 6 - Italy 6
+        assertEquals(match4, orderedMatches.get(0));
+        //2. Spain 10 - Brazil 2
+        assertEquals(match2, orderedMatches.get(1));
+        //3. Mexico 0 - Canada 5
+        assertEquals(match1, orderedMatches.get(2));
+        //4. Argentina 3 - Australia 1
+        assertEquals(match5, orderedMatches.get(3));
+        //5. Germany 2 - France 2
+        assertEquals(match3, orderedMatches.get(4));
+
+        orderedMatches.forEach(match ->
+                System.out.println(match.getHomeTeam().getName() + " "
+                        + match.getHomeTeam().getScore() + " - "
+                        + match.getAwayTeam().getName() + " "
+                        + match.getAwayTeam().getScore()));
+    }
+
+    @Test
+    public void testGetOrderedSummaryWithMultipleThreadsTryingToGetSummaryAtSameTime() throws InterruptedException {
+
+        FootballMatch match1 = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        FootballMatch match2 = new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.BRAZIL.getTeamName()));
+        FootballMatch match3 = new FootballMatch(new Team(FootballTeams.GERMANY.getTeamName()), new Team(FootballTeams.FRANCE.getTeamName()));
+        FootballMatch match4 = new FootballMatch(new Team(FootballTeams.URUGUAY.getTeamName()), new Team(FootballTeams.ITALY.getTeamName()));
+        FootballMatch match5 = new FootballMatch(new Team(FootballTeams.ARGENTINA.getTeamName()), new Team(FootballTeams.AUSTRALIA.getTeamName()));
+
+        scoreboard.startMatch(match1);
+        scoreboard.startMatch(match2);
+        scoreboard.startMatch(match3);
+        scoreboard.startMatch(match4);
+        scoreboard.startMatch(match5);
+
+        scoreboard.updateScore(match1, 0, 5);
+        scoreboard.updateScore(match2, 10, 2);
+        scoreboard.updateScore(match3, 2, 2);
+        scoreboard.updateScore(match4, 6, 6);
+        scoreboard.updateScore(match5, 3, 1);
+
+        scoreboard.endMatch(match1);
+        scoreboard.endMatch(match2);
+        scoreboard.endMatch(match3);
+        scoreboard.endMatch(match4);
+        scoreboard.endMatch(match5);
+
+        Thread thread1 = new Thread(() -> scoreboard.getOrderedSummary());
+
+        Thread thread2 = new Thread(() -> scoreboard.getOrderedSummary());
+
+        thread1.start();
+        thread2.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+            throw new ScoreboardException(e.getMessage());
+        } finally {
+            threadInterrupt(thread1, thread2);
+        }
+
+        List<FootballMatch> orderedMatches = scoreboard.getOrderedSummary();
+
+        assertNotNull(orderedMatches);
+        assertFalse(orderedMatches.isEmpty());
+
+        //1. Uruguay 6 - Italy 6
+        assertEquals(match4, orderedMatches.get(0));
+        //2. Spain 10 - Brazil 2
+        assertEquals(match2, orderedMatches.get(1));
+        //3. Mexico 0 - Canada 5
+        assertEquals(match1, orderedMatches.get(2));
+        //4. Argentina 3 - Australia 1
+        assertEquals(match5, orderedMatches.get(3));
+        //5. Germany 2 - France 2
+        assertEquals(match3, orderedMatches.get(4));
+
+        orderedMatches.forEach(match ->
+                System.out.println(match.getHomeTeam().getName() + " "
+                        + match.getHomeTeam().getScore() + " - "
+                        + match.getAwayTeam().getName() + " "
+                        + match.getAwayTeam().getScore()));
+    }
+
+    @Test
+    public void testExceptionWhenThereAreNoFinishedMatches() {
+        ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.getOrderedSummary());
+        assertEquals("No finished matches found", exception.getMessage());
+    }
+
+    @Test
+    public void testSummaryDoesNotIncludeActiveMatches() {
+        FootballMatch match1 = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        FootballMatch match2 = new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.BRAZIL.getTeamName()));
+        FootballMatch match3 = new FootballMatch(new Team(FootballTeams.GERMANY.getTeamName()), new Team(FootballTeams.FRANCE.getTeamName()));
+        FootballMatch match4 = new FootballMatch(new Team(FootballTeams.URUGUAY.getTeamName()), new Team(FootballTeams.ITALY.getTeamName()));
+        FootballMatch match5 = new FootballMatch(new Team(FootballTeams.ARGENTINA.getTeamName()), new Team(FootballTeams.AUSTRALIA.getTeamName()));
+
+        scoreboard.startMatch(match1);
+        scoreboard.startMatch(match2);
+        scoreboard.startMatch(match3);
+        scoreboard.startMatch(match4);
+        scoreboard.startMatch(match5);
+
+        scoreboard.updateScore(match1, 0, 5);
+        scoreboard.updateScore(match2, 10, 2);
+        scoreboard.updateScore(match3, 2, 2);
+        scoreboard.updateScore(match4, 6, 6);
+        scoreboard.updateScore(match5, 3, 1);
+
+        scoreboard.endMatch(match1);
+        scoreboard.endMatch(match2);
+        scoreboard.endMatch(match3);
+
+        List<FootballMatch> orderedMatches = scoreboard.getOrderedSummary();
+
+        assertNotNull(orderedMatches);
+        assertFalse(orderedMatches.isEmpty());
+        assertEquals(3, orderedMatches.size());
+        assertTrue(orderedMatches.stream().noneMatch(FootballMatch::isMatchActive));
     }
 
 }

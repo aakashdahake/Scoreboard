@@ -2,6 +2,7 @@ package org.scoreboard.BusinessLogic;
 
 import org.scoreboard.Model.DTO.FootballMatch;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface HandleScoreBoard {
@@ -13,4 +14,6 @@ public interface HandleScoreBoard {
     void updateScore(FootballMatch currentMatch, int homeTeamScore, int awayTeamScore);
 
     void endMatch(FootballMatch currentMatch);
+
+    List<FootballMatch> getOrderedSummary();
 }
