@@ -48,7 +48,7 @@ The summary should be as follows:
 ## Features
 
 - Start new matches with home and away teams
-- Update scores for individual teams
+- Update scores for teams
 - Finish completed matches
 - Retrieve a summary of active matches ordered by total score
 

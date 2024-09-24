@@ -16,6 +16,7 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
 
     private final ConcurrentHashMap<String, FootballMatch> matches = new ConcurrentHashMap<>();
     private final static Logger LOGGER = LogManager.getLogger(HandleScoreBoardImpl.class);
+
     private boolean isTeamAlreadyPlaying(Team homeTeam, Team awayTeam) {
         for (FootballMatch match : matches.values()) {
             if (match.getMatchKey().contains(homeTeam.getName()) || match.getMatchKey().contains(awayTeam.getName())) {
@@ -89,12 +90,9 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         }
 
         FootballMatch match = matches.get(currentMatch.getMatchKey());
-        if(match == null || !match.isMatchActive()) {
-            LOGGER.error("Can not end match that is not active or does not exist");
-            throw new ScoreboardException("Can not end match that is not active or does not exist");
-        }
+
         LOGGER.info("Ending match :: " + match.getMatchKey());
-        match.setMatchActive(false);
+        matches.remove(match.getMatchKey());
     }
 
     @Override
@@ -102,11 +100,9 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
 
         List<FootballMatch> footballMatches = Collections.list(Collections.enumeration(matches.values()));
 
-        // Collect matches which are not active
-footballMatches = footballMatches.stream().filter(match -> !match.isMatchActive()).collect(Collectors.toList());
-        if(footballMatches.isEmpty()) {
-            LOGGER.error("No finished matches found");
-            throw new ScoreboardException("No finished matches found");
+        if (footballMatches.isEmpty()) {
+            LOGGER.error("No active matches found");
+            throw new ScoreboardException("No active matches found");
         }
 
         footballMatches.sort(

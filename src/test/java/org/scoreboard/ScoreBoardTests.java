@@ -156,7 +156,7 @@ public class ScoreBoardTests {
         ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
         FootballMatch currentMatch = matches.get(newMatch.getMatchKey());
         scoreboard.endMatch(currentMatch);
-        assertFalse(matches.get(currentMatch.getMatchKey()).isMatchActive());
+        assertEquals(0, matches.size());
     }
 
     @Test
@@ -176,7 +176,7 @@ public class ScoreBoardTests {
         FootballMatch currentMatch = matches.get(newMatch.getMatchKey());
         scoreboard.endMatch(currentMatch);
         ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.endMatch(currentMatch));
-        assertEquals("Can not end match that is not active or does not exist", exception.getMessage());
+        assertEquals("Match not found", exception.getMessage());
     }
 
     @Test
@@ -202,7 +202,7 @@ public class ScoreBoardTests {
             threadInterrupt(thread1, thread2);
         }
 
-        assertFalse(matches.get(currentMatch.getMatchKey()).isMatchActive());
+        assertEquals(0, matches.size());
     }
 
     @Test
@@ -234,8 +234,7 @@ public class ScoreBoardTests {
             threadInterrupt(thread1, thread2);
         }
 
-        assertFalse(matches.get(currentMatch1.getMatchKey()).isMatchActive());
-        assertFalse(matches.get(currentMatch2.getMatchKey()).isMatchActive());
+        assertEquals(0, matches.size());
     }
 
     @Test
@@ -309,12 +308,6 @@ public class ScoreBoardTests {
         scoreboard.updateScore(match4, 6, 6);
         scoreboard.updateScore(match5, 3, 1);
 
-        scoreboard.endMatch(match1);
-        scoreboard.endMatch(match2);
-        scoreboard.endMatch(match3);
-        scoreboard.endMatch(match4);
-        scoreboard.endMatch(match5);
-
         Thread thread1 = new Thread(() -> scoreboard.getOrderedSummary());
 
         Thread thread2 = new Thread(() -> scoreboard.getOrderedSummary());
@@ -357,11 +350,11 @@ public class ScoreBoardTests {
     @Test
     public void testExceptionWhenThereAreNotFinishedMatches() {
         ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.getOrderedSummary());
-        assertEquals("No finished matches found", exception.getMessage());
+        assertEquals("No active matches found", exception.getMessage());
     }
 
     @Test
-    public void testSummaryDoesNotIncludeActiveMatches() {
+    public void testSummaryDoesNotIncludeRemovedMatches() {
         FootballMatch match1 = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
         FootballMatch match2 = new FootballMatch(new Team(FootballTeams.SPAIN.getTeamName()), new Team(FootballTeams.BRAZIL.getTeamName()));
         FootballMatch match3 = new FootballMatch(new Team(FootballTeams.GERMANY.getTeamName()), new Team(FootballTeams.FRANCE.getTeamName()));
@@ -388,8 +381,9 @@ public class ScoreBoardTests {
 
         assertNotNull(orderedMatches);
         assertFalse(orderedMatches.isEmpty());
-        assertEquals(3, orderedMatches.size());
-        assertTrue(orderedMatches.stream().noneMatch(FootballMatch::isMatchActive));
+        assertEquals(2, orderedMatches.size());
+        assertEquals(match4, orderedMatches.get(0));
+        assertEquals(match5, orderedMatches.get(1));
 
         orderedMatches.forEach(match ->
                 System.out.println(match.getHomeTeam().getName() + " "
