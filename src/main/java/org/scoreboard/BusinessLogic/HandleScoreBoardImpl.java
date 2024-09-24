@@ -28,10 +28,12 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         String matchName = newMatch.getMatchKey();
 
         if (matches.containsKey(matchName)) {
+            LOGGER.error("Match already exists");
             throw new ScoreboardException("Match already exists");
         }
 
         if (isTeamAlreadyPlaying(newMatch.getHomeTeam(), newMatch.getAwayTeam())) {
+            LOGGER.error("Team already playing in another match");
             throw new ScoreboardException("Team already playing in another match");
         }
         LOGGER.info("Starting new match :: " + matchName);
@@ -45,10 +47,12 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
 
     public static void validateScores(int homeTeamScore, int awayTeamScore, FootballMatch currentMatch) throws ScoreboardException {
         if (currentMatch.isMatchActive() && currentMatch.getHomeTeam() != null && homeTeamScore < 0) {
+            LOGGER.error("Score can not be negative for team :: " + currentMatch.getHomeTeam().getName());
             throw new ScoreboardException("Score can not be negative for team :: " + currentMatch.getHomeTeam().getName());
         }
 
         if (currentMatch.isMatchActive() && currentMatch.getAwayTeam() != null && awayTeamScore < 0) {
+            LOGGER.error("Score can not be negative for team :: " + currentMatch.getAwayTeam().getName());
             throw new ScoreboardException("Score can not be negative for team :: " + currentMatch.getAwayTeam().getName());
         }
     }
@@ -58,6 +62,7 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
 
 
         if (currentMatch == null || !matches.containsKey(currentMatch.getMatchKey())) {
+            LOGGER.error("Match not found");
             throw new ScoreboardException("Match not found");
         }
 
@@ -77,11 +82,13 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
     @Override
     public void endMatch(FootballMatch currentMatch) {
         if (currentMatch == null || !matches.containsKey(currentMatch.getMatchKey())) {
+            LOGGER.error("Match not found");
             throw new ScoreboardException("Match not found");
         }
 
         FootballMatch match = matches.get(currentMatch.getMatchKey());
         if(match == null || !match.isMatchActive()) {
+            LOGGER.error("Can not end match that is not active or does not exist");
             throw new ScoreboardException("Can not end match that is not active or does not exist");
         }
         LOGGER.info("Ending match :: " + match.getMatchKey());

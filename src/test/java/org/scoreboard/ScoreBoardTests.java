@@ -169,6 +169,17 @@ public class ScoreBoardTests {
     }
 
     @Test
+    public void testEndMatchThatIsNotActive(){
+        FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        scoreboard.startMatch(newMatch);
+        ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
+        FootballMatch currentMatch = matches.get(newMatch.getMatchKey());
+        scoreboard.endMatch(currentMatch);
+        ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.endMatch(currentMatch));
+        assertEquals("Can not end match that is not active or does not exist", exception.getMessage());
+    }
+
+    @Test
     public void testEndMatchWithMultipleThreadsTryingToEndSameMatchAtSameTime() throws InterruptedException {
 
         FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
@@ -344,7 +355,7 @@ public class ScoreBoardTests {
     }
 
     @Test
-    public void testExceptionWhenThereAreNoFinishedMatches() {
+    public void testExceptionWhenThereAreNotFinishedMatches() {
         ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.getOrderedSummary());
         assertEquals("No finished matches found", exception.getMessage());
     }
