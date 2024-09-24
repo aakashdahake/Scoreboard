@@ -12,8 +12,7 @@ import org.scoreboard.Model.Error.ScoreboardException;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 
 public class ScoreBoardTests {
 
@@ -41,6 +40,7 @@ public class ScoreBoardTests {
         scoreboard.startMatch(newMatch);
         ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
         assertEquals(1, matches.size());
+        assertTrue(matches.get(newMatch.getMatchKey()).isMatchActive());
     }
 
     @Test
@@ -135,6 +135,8 @@ public class ScoreBoardTests {
         try {
             thread1.join();
             thread2.join();
+            assertEquals(1, matches.get(currentMatch.getMatchKey()).getHomeTeam().getScore().intValue());
+            assertEquals(0, matches.get(currentMatch.getMatchKey()).getAwayTeam().getScore().intValue());
         } catch (InterruptedException e) {
             throw new ScoreboardException(e.getMessage());
         } finally {
@@ -145,5 +147,83 @@ public class ScoreBoardTests {
         assertEquals(0, matches.get(currentMatch.getMatchKey()).getAwayTeam().getScore().intValue());
     }
 
+    @Test
+    public void testEndMatch() {
+
+        FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        scoreboard.startMatch(newMatch);
+        ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
+        FootballMatch currentMatch = matches.get(newMatch.getMatchKey());
+        scoreboard.endMatch(currentMatch);
+        assertFalse(matches.get(currentMatch.getMatchKey()).isMatchActive());
+    }
+
+    @Test
+    public void testEndMatchWithInvalidMatch() {
+
+        FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        scoreboard.startMatch(newMatch);
+        ScoreboardException exception = assertThrows(ScoreboardException.class, () -> scoreboard.endMatch(new FootballMatch(new Team("Spain"), new Team("Italy"))));
+        assertEquals("Match not found", exception.getMessage());
+    }
+
+    @Test
+    public void testEndMatchWithMultipleThreadsTryingToEndSameMatchAtSameTime() throws InterruptedException {
+
+        FootballMatch newMatch = new FootballMatch(new Team(FootballTeams.MEXICO.getTeamName()), new Team(FootballTeams.CANADA.getTeamName()));
+        scoreboard.startMatch(newMatch);
+        ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
+        FootballMatch currentMatch = matches.get(newMatch.getMatchKey());
+
+        Thread thread1 = new Thread(() -> scoreboard.endMatch(currentMatch));
+        Thread thread2 = new Thread(() -> scoreboard.endMatch(currentMatch));
+
+        thread1.start();
+        thread2.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+            throw new ScoreboardException(e.getMessage());
+        } finally {
+            threadInterrupt(thread1, thread2);
+        }
+
+        assertFalse(matches.get(currentMatch.getMatchKey()).isMatchActive());
+    }
+
+    @Test
+    public void testEndMatchWithMultipleThreadsTryingToEndDifferentMatchesAtSameTime() throws InterruptedException {
+
+        FootballMatch match1 = new FootballMatch(new Team("Mexico"), new Team("Canada"));
+        FootballMatch match2 = new FootballMatch(new Team("Spain"), new Team("Italy"));
+
+        scoreboard.startMatch(match1);
+        scoreboard.startMatch(match2);
+
+        ConcurrentHashMap<String, FootballMatch> matches = scoreboard.getMatches();
+
+        FootballMatch currentMatch1 = matches.get("Mexico-Canada");
+        FootballMatch currentMatch2 = matches.get("Spain-Italy");
+
+        Thread thread1 = new Thread(() -> scoreboard.endMatch(currentMatch1));
+        Thread thread2 = new Thread(() -> scoreboard.endMatch(currentMatch2));
+
+        thread1.start();
+        thread2.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+            throw new ScoreboardException(e.getMessage());
+        } finally {
+            threadInterrupt(thread1, thread2);
+        }
+
+        assertFalse(matches.get(currentMatch1.getMatchKey()).isMatchActive());
+        assertFalse(matches.get(currentMatch2.getMatchKey()).isMatchActive());
+    }
 
 }

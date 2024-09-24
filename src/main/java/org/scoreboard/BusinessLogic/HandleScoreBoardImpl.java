@@ -65,4 +65,9 @@ public class HandleScoreBoardImpl implements HandleScoreBoard {
         }
     }
 
+    @Override
+    public void endMatch(FootballMatch currentMatch) {
+
+    }
+
 }
